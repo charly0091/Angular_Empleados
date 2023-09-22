@@ -12,11 +12,13 @@ export class EmpleadoService {
   private endpoint: string = environment.endPoint;
   private apiUrl: string = this.endpoint + "empleado/";
 
-  constructor(private http:HttpClient) { }
+  constructor(private http:HttpClient) { 
+  }
 
   getList(): Observable<Empleado[]> {
     return this.http.get<Empleado[]>(`${this.apiUrl}lista`);
   }
+  
 
   add(modelo:Empleado): Observable<Empleado> {
     return this.http.post<Empleado>(`${this.apiUrl}guardar`,modelo);
