@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -45,8 +45,9 @@ export class DialogAddEditComponent {
     private fb: FormBuilder,
     private _snackBar: MatSnackBar,
     private _departamentoServicio: DepartamentoService,
-    private _empleadoServicio: EmpleadoService
-) {
+    private _empleadoServicio: EmpleadoService,
+    @Inject(MAT_DIALOG_DATA) public dataEmpleado: Empleado
+  ) {
     this.formEmpleado = this.fb.group({
       nombreCompleto: ['', Validators.required],
       idDepartamento: ['', Validators.required],
@@ -74,26 +75,50 @@ export class DialogAddEditComponent {
 
   addEditEmpleado() {
 
-    console.log(this.formEmpleado.value)
-
     const modelo: Empleado = {
       idEmpleado: 0,
       nombreCompleto: this.formEmpleado.value.nombreCompleto,
       idDepartamento: this.formEmpleado.value.idDepartamento,
       sueldo: this.formEmpleado.value.sueldo,
       fechaContrato: moment(this.formEmpleado.value.fechaContrato).format("DD/MM/YYYY")
+    }
+
+    if(this.dataEmpleado == null){
+      this._empleadoServicio.add(modelo).subscribe({
+        next: (data) => {
+          this.mostrarAlerta("Empleado creado correctamente", "Listo");
+          this.dialogoReferencia.close("creado");
+        }, error: (err) => {
+          this.mostrarAlerta("Error al crear el empleado", "Error");
+        }
+      });
+    } else {
+      this._empleadoServicio.update(this.dataEmpleado.idEmpleado, modelo).subscribe({
+        next: (data) => {
+          this.mostrarAlerta("Empleado actualizado correctamente", "Listo");
+          this.dialogoReferencia.close("editado");
+        }, error: (err) => {
+          this.mostrarAlerta("Error al actualizar el empleado", "Error");
+        }
+      });
+    }
+
+    
+
   }
 
-  this._empleadoServicio.add(modelo).subscribe({
-    next: (data) => {
-      this.mostrarAlerta("Empleado creado correctamente", "Listo");
-      this.dialogoReferencia.close("creado");
-    }, error: (err) => {
-      this.mostrarAlerta("Error al crear el empleado", "Error");
+  ngOnInit(): void {
+    if(this.dataEmpleado){
+      this.tituloAccion = "Editar";
+      this.botonAccion = "Actualizar";
+      this.formEmpleado.patchValue({
+        nombreCompleto: this.dataEmpleado.nombreCompleto,
+        idDepartamento: this.dataEmpleado.idDepartamento,
+        sueldo: this.dataEmpleado.sueldo,
+        fechaContrato: moment(this.dataEmpleado.fechaContrato, "DD/MM/YYYY")
+      })
     }
-  })
-
-}
+  }
 
 
 
